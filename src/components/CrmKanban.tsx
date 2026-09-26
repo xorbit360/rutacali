@@ -16,7 +16,9 @@ import {
   ChevronRight,
   AlertCircle,
   Headphones,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Layers,
+  Filter
 } from 'lucide-react';
 
 export type ContactItem = {
@@ -62,6 +64,7 @@ type ChatMessage = {
 const PIPELINE_COLUMNS: {
   id: ContactItem['conversation_stage'];
   label: string;
+  shortLabel: string;
   badgeColor: string;
   borderColor: string;
   desc: string;
@@ -69,6 +72,7 @@ const PIPELINE_COLUMNS: {
   {
     id: 'intake',
     label: '1. Nuevo Ingreso',
+    shortLabel: 'Ingreso',
     badgeColor: 'bg-blue-100 text-blue-800 border-blue-200',
     borderColor: 'border-t-blue-500',
     desc: 'Primer contacto y bienvenida'
@@ -76,6 +80,7 @@ const PIPELINE_COLUMNS: {
   {
     id: 'awaiting_consent',
     label: '2. En Triaje / Consentimiento',
+    shortLabel: 'En Triaje',
     badgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
     borderColor: 'border-t-amber-500',
     desc: 'Validando Ley 1581 o necesidades'
@@ -83,6 +88,7 @@ const PIPELINE_COLUMNS: {
   {
     id: 'triaged',
     label: '3. Triaje Completado',
+    shortLabel: 'Triaje OK',
     badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     borderColor: 'border-t-emerald-500',
     desc: 'Ruta 1 - 4 asignada'
@@ -90,6 +96,7 @@ const PIPELINE_COLUMNS: {
   {
     id: 'case_created',
     label: '4. Expediente Radicado',
+    shortLabel: 'Expediente',
     badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
     borderColor: 'border-t-purple-500',
     desc: 'Código oficial RAC-2026'
@@ -97,6 +104,7 @@ const PIPELINE_COLUMNS: {
   {
     id: 'human_handoff',
     label: '5. Atención Humana',
+    shortLabel: 'Humana',
     badgeColor: 'bg-rose-100 text-rose-800 border-rose-200',
     borderColor: 'border-t-rose-500',
     desc: 'Derivado a gestor territorial'
@@ -113,6 +121,7 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeMobileTab, setActiveMobileTab] = useState<'all' | ContactItem['conversation_stage']>('all');
   const [selectedContact, setSelectedContact] = useState<ContactItem | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [loadingChat, setLoadingChat] = useState(false);
@@ -245,37 +254,40 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
   }, [contacts, searchTerm]);
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-6">
-      {/* Barra de Navegación Superior */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <div className="flex items-center gap-3">
+    <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-6">
+      {/* Barra de Navegación Superior Responsive */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6 bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-xs">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={onBackToQr}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-bold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs sm:text-sm font-bold transition-colors cursor-pointer shrink-0"
             title="Volver a la pantalla del código QR"
           >
             <ArrowLeft className="w-4 h-4" />
-            Volver a QR
+            <span className="hidden xs:inline">Volver a</span> QR
           </button>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black text-slate-900">CRM de Conversaciones & Pipeline Kanban</h1>
-              <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-base sm:text-lg lg:text-xl font-black text-slate-900 leading-tight">
+                CRM & Pipeline Kanban
+              </h1>
+              <span className="text-[10px] sm:text-xs px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold">
                 WhatsApp en Vivo
               </span>
             </div>
-            <p className="text-xs text-slate-500">
-              Estado de los comerciantes, triaje automatizado por IA y atención directa
+            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 line-clamp-1">
+              Monitoreo y triaje de comerciantes en tiempo real
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 flex-1 sm:flex-initial justify-end">
-          <div className="relative min-w-[240px]">
+        {/* Buscador y botón de sincronizar */}
+        <div className="flex items-center gap-2 w-full lg:w-auto">
+          <div className="relative flex-1 lg:w-72">
             <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar por nombre, teléfono o barrio..."
+              placeholder="Buscar comerciante, teléfono o barrio..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -284,50 +296,90 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
           <button
             onClick={fetchPipeline}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 shrink-0"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            Sincronizar
+            <span className="hidden sm:inline">Sincronizar</span>
           </button>
         </div>
       </div>
 
-      {/* Métricas rápidas */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
-          <p className="text-xs text-slate-500 font-semibold">Total Comerciantes</p>
-          <p className="text-2xl font-black text-slate-900 mt-1">{contacts.length}</p>
+      {/* Métricas rápidas adaptativas */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200 shadow-xs">
+          <p className="text-[11px] sm:text-xs text-slate-500 font-semibold truncate">Total Comerciantes</p>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">{contacts.length}</p>
         </div>
-        <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
-          <p className="text-xs text-amber-600 font-semibold">En Triaje / Consentimiento</p>
-          <p className="text-2xl font-black text-amber-700 mt-1">
+        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200 shadow-xs">
+          <p className="text-[11px] sm:text-xs text-amber-600 font-semibold truncate">En Triaje / Consentimiento</p>
+          <p className="text-xl sm:text-2xl font-black text-amber-700 mt-0.5">
             {contacts.filter((c) => c.conversation_stage === 'awaiting_consent' || c.conversation_stage === 'intake').length}
           </p>
         </div>
-        <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
-          <p className="text-xs text-emerald-600 font-semibold">Ruta Asignada (Triaje)</p>
-          <p className="text-2xl font-black text-emerald-700 mt-1">
+        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200 shadow-xs">
+          <p className="text-[11px] sm:text-xs text-emerald-600 font-semibold truncate">Ruta Asignada</p>
+          <p className="text-xl sm:text-2xl font-black text-emerald-700 mt-0.5">
             {contacts.filter((c) => c.conversation_stage === 'triaged' || c.current_route !== null).length}
           </p>
         </div>
-        <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
-          <p className="text-xs text-purple-600 font-semibold">Expedientes RAC-2026</p>
-          <p className="text-2xl font-black text-purple-700 mt-1">
+        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200 shadow-xs">
+          <p className="text-[11px] sm:text-xs text-purple-600 font-semibold truncate">Expedientes RAC-2026</p>
+          <p className="text-xl sm:text-2xl font-black text-purple-700 mt-0.5">
             {contacts.filter((c) => c.latest_case || c.conversation_stage === 'case_created').length}
           </p>
         </div>
       </div>
 
+      {/* Pestañas para Móviles / Tablets (para cambiar rápido de columna) */}
+      <div className="flex md:hidden items-center gap-1.5 overflow-x-auto pb-2 mb-3 scrollbar-none">
+        <button
+          onClick={() => setActiveMobileTab('all')}
+          className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition-colors ${
+            activeMobileTab === 'all'
+              ? 'bg-slate-900 text-white'
+              : 'bg-white border border-slate-200 text-slate-600'
+          }`}
+        >
+          Todas las etapas ({filteredContacts.length})
+        </button>
+        {PIPELINE_COLUMNS.map((col) => {
+          const count = filteredContacts.filter((c) =>
+            col.id === 'intake' ? c.conversation_stage === 'intake' || !c.conversation_stage : c.conversation_stage === col.id
+          ).length;
+          return (
+            <button
+              key={col.id}
+              onClick={() => setActiveMobileTab(col.id)}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition-colors flex items-center gap-1 ${
+                activeMobileTab === col.id
+                  ? 'bg-emerald-700 text-white'
+                  : 'bg-white border border-slate-200 text-slate-600'
+              }`}
+            >
+              <span>{col.shortLabel}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${activeMobileTab === col.id ? 'bg-emerald-800 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
-          <AlertCircle className="w-5 h-5 shrink-0" />
+        <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs sm:text-sm flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Tablero Kanban */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-start">
+      {/* Tablero Kanban: Flexible en móvil (con scroll horizontal o filtrado por tab) y Grid de 5 columnas en Tablets/Desktop */}
+      <div className="flex md:grid md:grid-cols-5 gap-3 sm:gap-4 items-start overflow-x-auto pb-4 md:pb-0 scroll-smooth snap-x snap-mandatory">
         {PIPELINE_COLUMNS.map((col) => {
+          // Si estamos en móvil y hay una pestaña activa seleccionada (que no sea 'all'), ocultamos las otras
+          if (activeMobileTab !== 'all' && activeMobileTab !== col.id) {
+            return null;
+          }
+
           const colContacts = filteredContacts.filter((c) => {
             if (col.id === 'intake') return c.conversation_stage === 'intake' || !c.conversation_stage;
             return c.conversation_stage === col.id;
@@ -336,56 +388,57 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
           return (
             <div
               key={col.id}
-              className={`bg-slate-50/70 border border-slate-200 rounded-xl p-3 border-t-4 ${col.borderColor} min-h-[500px] flex flex-col`}
+              className={`bg-slate-50/80 border border-slate-200 rounded-xl p-2.5 sm:p-3 border-t-4 ${col.borderColor} min-h-[420px] sm:min-h-[500px] flex flex-col w-[85vw] sm:w-[320px] md:w-auto md:min-w-0 shrink-0 snap-center shadow-2xs`}
             >
               {/* Encabezado de Columna */}
-              <div className="flex items-center justify-between mb-2">
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${col.badgeColor}`}>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className={`text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-full border truncate max-w-[80%] ${col.badgeColor}`}>
                   {col.label}
                 </span>
-                <span className="text-xs font-black text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] sm:text-xs font-black text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
                   {colContacts.length}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 mb-3">{col.desc}</p>
+              <p className="text-[10px] sm:text-[11px] text-slate-500 mb-2.5 line-clamp-1">{col.desc}</p>
 
               {/* Lista de Tarjetas */}
-              <div className="space-y-3 flex-1 overflow-y-auto">
+              <div className="space-y-2.5 flex-1 overflow-y-auto">
                 {colContacts.map((c) => (
                   <div
                     key={c.id}
-                    className="bg-white border border-slate-200 rounded-lg p-3 shadow-xs hover:shadow-md transition-shadow cursor-pointer relative group"
+                    className="bg-white border border-slate-200 rounded-lg p-2.5 sm:p-3 shadow-2xs hover:shadow-md transition-shadow cursor-pointer relative group"
                     onClick={() => openChat(c)}
                   >
-                    <div className="flex items-start justify-between gap-1 mb-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-xs">
+                    <div className="flex items-start justify-between gap-1.5 mb-1.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-xs shrink-0">
                           {(c.business_name || c.display_name || 'C')[0].toUpperCase()}
                         </div>
-                        <div>
-                          <h4 className="text-xs font-bold text-slate-900 leading-tight">
+                        <div className="min-w-0">
+                          <h4 className="text-xs font-bold text-slate-900 leading-tight truncate">
                             {c.business_name || c.display_name || 'Comerciante'}
                           </h4>
-                          <p className="text-[10px] text-slate-500">
+                          <p className="text-[10px] text-slate-500 truncate">
                             {c.phone_number ? `+${c.phone_number}` : c.remote_jid.replace('@lid', '')}
                           </p>
                         </div>
                       </div>
                       {c.latest_case && (
-                        <span className="text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded">
+                        <span className="text-[9px] font-black bg-purple-50 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded shrink-0">
                           {c.latest_case.case_code.split('-').slice(0, 2).join('-')}
                         </span>
                       )}
                     </div>
 
-                    {/* Ubicación y Ruta */}
+                    {/* Ubicación */}
                     {(c.neighborhood || c.commune) && (
-                      <div className="flex items-center gap-1 text-[11px] text-slate-600 mb-1.5">
+                      <div className="flex items-center gap-1 text-[10px] sm:text-[11px] text-slate-600 mb-1.5">
                         <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                         <span className="truncate">{[c.neighborhood, c.commune].filter(Boolean).join(', ')}</span>
                       </div>
                     )}
 
+                    {/* Ruta asignada */}
                     {c.current_route && (
                       <div className="mb-2">
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 block truncate">
@@ -396,7 +449,7 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
 
                     {/* Último Mensaje */}
                     {c.last_message && (
-                      <div className="bg-slate-50 p-2 rounded border border-slate-100 text-[11px] text-slate-600 mb-2 line-clamp-2">
+                      <div className="bg-slate-50 p-2 rounded border border-slate-100 text-[10px] sm:text-[11px] text-slate-600 mb-2 line-clamp-2">
                         <span className="font-semibold text-slate-700">
                           {c.last_message.direction === 'inbound' ? 'Él: ' : 'Bot: '}
                         </span>
@@ -404,7 +457,7 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
                       </div>
                     )}
 
-                    {/* Pie de tarjeta con acciones y cambio de etapa */}
+                    {/* Acciones y cambio de etapa */}
                     <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[10px]">
                       <span className="text-slate-400 flex items-center gap-1">
                         <MessageCircle className="w-3 h-3" />
@@ -415,7 +468,7 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
                           e.stopPropagation();
                           openChat(c);
                         }}
-                        className="text-emerald-700 font-bold hover:underline flex items-center gap-0.5 cursor-pointer"
+                        className="text-emerald-700 font-bold hover:underline flex items-center gap-0.5 cursor-pointer py-1"
                       >
                         Ver Chat <ChevronRight className="w-3 h-3" />
                       </button>
@@ -432,7 +485,7 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
                         onChange={(e) =>
                           handleUpdateStage(c.id, e.target.value as ContactItem['conversation_stage'])
                         }
-                        className="w-full text-[10px] py-0.5 px-1 border border-slate-200 rounded bg-white text-slate-700 focus:outline-none"
+                        className="w-full text-[10px] py-1 px-1 border border-slate-200 rounded bg-white text-slate-700 focus:outline-none"
                       >
                         {PIPELINE_COLUMNS.map((p) => (
                           <option key={p.id} value={p.id}>
@@ -445,8 +498,8 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
                 ))}
 
                 {colContacts.length === 0 && (
-                  <div className="h-32 flex flex-col items-center justify-center text-slate-400 text-xs border border-dashed border-slate-200 rounded-lg">
-                    Sin contactos
+                  <div className="h-28 sm:h-32 flex flex-col items-center justify-center text-slate-400 text-xs border border-dashed border-slate-200 rounded-lg">
+                    Sin comerciantes
                   </div>
                 )}
               </div>
@@ -455,39 +508,40 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
         })}
       </div>
 
-      {/* Modal / Drawer de Chat de Conversación */}
+      {/* Modal / Drawer de Chat: Fullscreen en móvil, Drawer elegante en desktop */}
       {selectedContact && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex justify-end">
-          <div className="bg-white w-full max-w-xl h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+          <div className="bg-white w-full sm:max-w-xl h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
             {/* Header del Chat */}
-            <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
+            <div className="p-3 sm:p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs sm:text-sm shrink-0">
                   {(selectedContact.business_name || selectedContact.display_name || 'C')[0].toUpperCase()}
                 </div>
-                <div>
-                  <h3 className="font-bold text-slate-900 text-sm">
+                <div className="min-w-0">
+                  <h3 className="font-bold text-slate-900 text-xs sm:text-sm truncate">
                     {selectedContact.business_name || selectedContact.display_name || 'Comerciante'}
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-[10px] sm:text-xs text-slate-500 truncate">
                     +{selectedContact.phone_number || selectedContact.remote_jid} •{' '}
                     <span className="font-semibold text-emerald-700">
-                      {PIPELINE_COLUMNS.find((p) => p.id === selectedContact.conversation_stage)?.label}
+                      {PIPELINE_COLUMNS.find((p) => p.id === selectedContact.conversation_stage)?.shortLabel}
                     </span>
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedContact(null)}
-                className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 cursor-pointer"
+                className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 cursor-pointer shrink-0"
+                title="Cerrar chat"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Ficha rápida de información */}
-            <div className="px-4 py-2 bg-slate-100/80 border-b border-slate-200 text-xs grid grid-cols-2 gap-2 text-slate-600">
-              <div>
+            <div className="px-3 sm:px-4 py-2 bg-slate-100/90 border-b border-slate-200 text-[11px] sm:text-xs grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 text-slate-600 shrink-0">
+              <div className="truncate">
                 <span className="font-bold text-slate-700">Ubicación:</span>{' '}
                 {[selectedContact.neighborhood, selectedContact.commune].filter(Boolean).join(' - ') || 'No especificada'}
               </div>
@@ -504,7 +558,7 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
                 </span>
               </div>
               {selectedContact.latest_case && (
-                <div className="col-span-2 bg-purple-50 p-1.5 rounded border border-purple-200 text-purple-900">
+                <div className="sm:col-span-2 bg-purple-50 p-1.5 rounded border border-purple-200 text-purple-900 truncate">
                   <span className="font-bold">Expediente:</span> {selectedContact.latest_case.case_code} (
                   {selectedContact.latest_case.assigned_entity})
                 </div>
@@ -512,13 +566,13 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
             </div>
 
             {/* Mensajes del Chat */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/50">
+            <div className="flex-1 p-3 sm:p-4 overflow-y-auto space-y-2.5 sm:space-y-3 bg-slate-50/50">
               {loadingChat ? (
-                <div className="flex items-center justify-center h-full text-slate-400 text-sm">
-                  <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Cargando historial de WhatsApp...
+                <div className="flex items-center justify-center h-full text-slate-400 text-xs sm:text-sm">
+                  <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" /> Cargando historial de WhatsApp...
                 </div>
               ) : chatMessages.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                <div className="flex items-center justify-center h-full text-slate-400 text-xs sm:text-sm">
                   No hay mensajes registrados con este contacto.
                 </div>
               ) : (
@@ -533,7 +587,7 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
                       className={`flex flex-col ${isInbound ? 'items-start' : 'items-end'}`}
                     >
                       <div
-                        className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs shadow-xs ${
+                        className={`max-w-[90%] sm:max-w-[85%] rounded-2xl px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs shadow-2xs ${
                           isInbound
                             ? 'bg-white text-slate-800 border border-slate-200 rounded-bl-xs'
                             : 'bg-emerald-600 text-white rounded-br-xs'
@@ -553,7 +607,7 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
                           </div>
                         )}
 
-                        <p className="whitespace-pre-wrap leading-relaxed">{msg.body}</p>
+                        <p className="whitespace-pre-wrap leading-relaxed break-words">{msg.body}</p>
                         <div
                           className={`flex items-center justify-end gap-1 mt-1 text-[9px] ${
                             isInbound ? 'text-slate-400' : 'text-emerald-200'
@@ -572,25 +626,25 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
             </div>
 
             {/* Formulario para Enviar Mensaje Manual */}
-            <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-200 bg-white flex gap-2">
+            <form onSubmit={handleSendMessage} className="p-2.5 sm:p-3 border-t border-slate-200 bg-white flex gap-2 shrink-0">
               <input
                 type="text"
-                placeholder="Escribe un mensaje de WhatsApp para el comerciante..."
+                placeholder="Escribe un mensaje de WhatsApp..."
                 value={manualText}
                 onChange={(e) => setManualText(e.target.value)}
                 disabled={sendingMessage}
-                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm sm:text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
               <button
                 type="submit"
                 disabled={sendingMessage || !manualText.trim()}
-                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                className="px-3.5 sm:px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shrink-0 transition-colors"
               >
                 {sendingMessage ? (
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 ) : (
                   <>
-                    <Send className="w-3.5 h-3.5" /> Enviar
+                    <Send className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Enviar</span>
                   </>
                 )}
               </button>
