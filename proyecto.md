@@ -1,195 +1,42 @@
-# Ruta Abierta Cali
+Artefacto 4 — Equipo Expert 360
+Equipo y reto
+Equipo	Expert 360
+Reto	RETO-02 Cali vuelve a abrir: de las necesidades empresariales a rutas de recuperación
+Reto acotado	Cómo podríamos…?
+Idea elegida	(sin diligenciar)
+Propuesta de valor
+Propuesta en una frase	Para los microempresarios, tenderos y comerciantes de barrio de Cali (formales e informales, incluidos los reubicados),
+que necesita reactivar sus ventas, acceder a liquidez inmediata y reducir los costos de sus insumos tras la emergencia post-sismo,
+nuestra solución activa en menos de 60 segundos una ruta de recuperación personalizada y compras colectivas en enjambre con un 18% de ahorro,
+mediante un asistente conversacional accesible por WhatsApp (por voz o texto) con Expediente Único (RAC-2026) bajo Ley 1581 y monitoreo pasivo de reapertura con EMCALI,
+a diferencia de los trámites presenciales fragmentados, los censos tradicionales y los formularios web complejos que exigen exigentes requisitos fiscales.
+Supuestos críticos
+1. Los microempresarios y tenderos de la economía popular prefieren interactuar mediante notas de voz o mensajes sencillos por WhatsApp que diligenciar formularios web complejos o hacer filas presenciales ante las entidades. (validado)
+2. Las entidades del ecosistema (Secretaría de Desarrollo Económico, Cámara de Comercio de Cali y Comfandi) están dispuestas a interoperar compartiendo la información del comerciante bajo un Expediente Único (RAC-2026) con consentimiento explícito bajo Ley 1581 para evitar la duplicidad de trámites. (validado)
+3. El monitoreo del retorno del consumo de energía eléctrica comercial (kWh) junto a EMCALI sirve como un indicador pasivo y confiable de la reapertura real del negocio sin requerir inspecciones físicas ni papeleo adicional. (validado)
+4. Los distribuidores mayoristas de insumos de Cali aceptarán otorgar descuentos del 10% al 18% a tenderos de barrio cuando estos se agrupen por cuadrante para realizar compras colectivas (Ruta en Enjambre). (por_validar)
+5. Eliminar los requisitos fiscales rígidos (como el RUT o la facturación electrónica) como barrera de entrada no incrementa el riesgo de fraude y permite que los comerciantes más informales y vulnerables accedan a los alivios. (validado)
+Validación con usuarios
+Simulación con Claude. Aprendizaje: El alivio a la caja diaria es el gancho principal: El beneficio de las compras colectivas en enjambre (18% de descuento en insumos) es el incentivo más atractivo para el comerciante, ya que genera liquidez inmediata sin depender de trámites crediticios o aprobaciones bancarias.
+Riesgo de la falsa expectativa de velocidad: Prometer un "código en 60 segundos" resuelve la fricción inicial de registro (TRL 3), pero genera desconfianza si no se comunica de forma transparente cuánto tiempo tomará la entrega real del alivio o la atención institucional.
+El temor a la fiscalización es la principal barrera de adopción: El comerciante informal o golpeado desconfía por miedo a que el registro sea un gancho para cobros tributarios o auditorías de la DIAN y la Alcaldía.
+LO QUE SE AJUSTARÍA EN EL PROTOTIPO:
+Transparencia en tiempos de respuesta (SLA): Incluir en la tarjeta del Expediente Único (RAC-2026) el tiempo estimado de respuesta según la ruta elegida (ej. «Tu solicitud al Fondo Solidario fue radicada. Tiempo estimado de contacto institucional: 48 horas hábiles»).
+Blindaje de Habeas Data destacado: Desplegar en el primer mensaje de WhatsApp la garantía de protección de datos: «Uso exclusivo para alivios de reactivación — Información protegida bajo Ley 1581. NO compartida con entes de fiscalización ni impuestos».
+Priorización de la Ruta de Insumos: Colocar las compras en enjambre como la primera recomendación sugerida en el bot para responder a la necesidad inmediata de flujo de caja.
+CONFIRMACIÓN DE SUPUESTOS:
+Confirmado: La interacción por WhatsApp (voz o texto) sin exigir RUT al día o formalización previa elimina la fricción de entrada para los comerciantes de la economía popular.
+Confirmado: Los tenderos y comerciantes están dispuestos a agruparse por cuadrante con vecinos de su zona para comprar mercancía con descuento.
+Ajustado: La promesa de agilidad técnica debe acoplarse necesariamente con compromisos de tiempo de respuesta de las entidades aliadas (Secretaría de Desarrollo Económico, Comfandi y Cámara de Comercio de Cali).
+Nivel de avance
+TRL 3 + IRL 3
+Plan del prototipo
+Qué mostrará	Ruta Abierta Cali demuestra un prototipo conversacional por WhatsApp que permite a los comerciantes solicitar apoyo por texto o nota de voz sin trámites complejos ni RUT al día. En menos de 60 segundos, una IA clasifica la necesidad en 4 rutas (Liquidez, Maquinaria, Insumos y Clientes), emite un Expediente Único (RAC-2026) protegido por Ley 1581 para interoperar con la Alcaldía, la CCC y Comfandi, agrupa compras colectivas en enjambre con 18% de descuento y monitorea la reapertura real mediante el consumo de energía comercial con EMCALI.
+Formato	dashboard, figma — Flujo interactivo de 5 pantallas de WhatsApp (ingreso con nota de voz/texto, triaje No-Code en 60s, Expediente Único RAC-2026 y tarjeta de compras en enjambre) integrado con una automatización simulada de ruteo de solicitudes y un tablero de control distrital para el monitoreo pasivo de reapertura comercial con datos de EMCALI.
+Distribución	Rol: Liderazgo de Proyecto, Diseño, Desarrollo y Presentación (Expert 360)
+Diseño y Figma: Construcción de las 4 pantallas clave del flujo de WhatsApp, Expediente Único RAC-2026 y tarjeta de compras colectivas en enjambre).
+Dashboard y Visualización: Configuración de la vista de control para el monitoreo pasivo de reapertura comercial con datos de EMCALI.
+Datos de Prueba y Documentación: Consolidación del caso de uso simulado (Doña María - tendera de San Fernando) y diligenciamiento final del documento Artefacto 2 - Expert 360.docx.
+Pitch y Carga Final: Ensayos de la presentación de 3 minutos para el jurado y subida del archivo final a la carpeta oficial de Drive.
+Materiales	Computador portátil y cargador Los datos de prueba cargados: Caso simulado de "Doña María" (tendera de San Fernando / comerciante reubicada en La 14 de la 80) Figma con las pantallas de WhatsApp y la vista del tablero Libreta de apuntes y esfero
 
-## Estado del documento
-
-Documento técnico vivo del proyecto desplegable en `rutacali.xorbit360.com`.
-
-La fuente `especifiacionestecnicas..md` continúa vacía (0 bytes), por lo que este documento se construyó a partir del código actual del repositorio y de los requisitos indicados en la conversación. Debe revisarse cuando las especificaciones completas estén disponibles.
-
-## Propósito
-
-Ruta Abierta Cali es una plataforma GovTech para orientar a comerciantes populares de Santiago de Cali mediante WhatsApp y una interfaz web. El sistema recibe solicitudes en lenguaje natural, identifica la barrera principal, asigna una ruta institucional y conserva trazabilidad del caso.
-
-Objetivos principales:
-
-- Brindar una entrada accesible por WhatsApp, texto y notas de voz.
-- Realizar un triaje breve sin exigir RUT, DIAN ni formularios extensos.
-- Obtener consentimiento para tratamiento de datos conforme a la Ley 1581 de 2012.
-- Dirigir cada caso hacia la entidad responsable.
-- Crear un expediente RAC y registrar mensajes y estados.
-- Permitir a un administrador vincular el número de WhatsApp mediante código QR.
-
-## Proyecto Supabase
-
-- Proyecto exclusivo: `zfldlzsozlesecbtyltk`.
-- URL: `https://zfldlzsozlesecbtyltk.supabase.co`.
-- Uso: PostgreSQL, Row Level Security y Edge Functions.
-- El proyecto es independiente de cualquier otro proyecto Supabase disponible en la cuenta local.
-- El frontend usa únicamente una clave publicable mediante variables `VITE_*`.
-- Las claves `secret` y `service_role` no deben incluirse en el código, frontend, documentación ni repositorio.
-
-## Arquitectura
-
-```text
-Comerciante
-    |
-    v
-WhatsApp
-    |
-    v
-Evolution API
-    |
-    +--> evolution-webhook (Supabase Edge Function)
-            |
-            +--> Gemini: clasificación y respuesta
-            +--> PostgreSQL: historial de mensajes
-            +--> Evolution API: envío de respuesta
-
-Administrador web
-    |
-    +--> Menú Conectar WhatsApp
-            |
-            +--> evolution-admin (Supabase Edge Function)
-                    |
-                    +--> Crear instancia
-                    +--> Obtener QR
-                    +--> Consultar estado
-                    +--> Desconectar sesión
-```
-
-## Componentes
-
-### Frontend
-
-- React 19, TypeScript, Vite y Tailwind CSS.
-- Menú administrativo `Conectar WhatsApp`.
-- Visualización del QR y estado de conexión.
-- Pantallas existentes para Alcaldía, Cámara de Comercio, Comfandi, interoperabilidad y flujo del comerciante.
-- Configuración pública cargada desde `.env.local`.
-
-### Supabase Edge Functions
-
-`evolution-admin`:
-
-- Protegida por `EVOLUTION_ADMIN_TOKEN`.
-- Crea o consulta la instancia de Evolution API.
-- Devuelve el QR al frontend.
-- Permite consultar estado y cerrar la sesión vinculada.
-
-`evolution-webhook`:
-
-- Valida `EVOLUTION_WEBHOOK_SECRET`.
-- Ignora mensajes enviados por el propio bot.
-- Evita duplicados por identificador de mensaje.
-- Persiste mensajes entrantes y salientes.
-- Envía el contexto reciente a Gemini.
-- Responde al comerciante mediante Evolution API.
-
-### Base de datos
-
-Tablas iniciales:
-
-- `whatsapp_instances`: estado de la instancia vinculada.
-- `whatsapp_messages`: mensajes entrantes, salientes y payload original.
-
-Ambas tablas tienen RLS habilitado y no conceden acceso directo a `anon` ni `authenticated`. Las operaciones privilegiadas se realizan desde Edge Functions.
-
-## Rutas de atención
-
-1. Liquidez y Fondo Solidario: arriendo, nómina, deudas y falta de capital. Entidad: Secretaría de Desarrollo Económico.
-2. Maquinaria e Infraestructura: daños, adecuaciones, energía y herramientas. Entidad: Comfandi.
-3. Compras Colectivas: insumos costosos y compras por volumen. Entidad: Cámara de Comercio de Cali.
-4. Clientes y Visibilidad: reubicación, vías cerradas, comercialización y caída de ventas. Entidades: Secretaría de Desarrollo Económico y Cámara de Comercio de Cali.
-
-## Reglas del bot
-
-- Hablar en español colombiano, con tono cálido, claro y breve.
-- Hacer una sola pregunta por turno.
-- No inventar aprobaciones, montos, subsidios ni beneficios.
-- Solicitar consentimiento expreso antes de crear un expediente.
-- No pedir información sensible que no sea necesaria.
-- Indicar la entidad responsable y el siguiente paso.
-- Informar que es un asistente automatizado cuando sea relevante.
-
-El prompt operativo se encuentra en `supabase/functions/evolution-webhook/prompt.ts`.
-
-## Variables de entorno
-
-Frontend, valores públicos:
-
-```text
-VITE_SUPABASE_URL
-VITE_SUPABASE_PUBLISHABLE_KEY
-```
-
-Supabase Edge Function Secrets, valores privados:
-
-```text
-EVOLUTION_API_URL
-EVOLUTION_API_KEY
-EVOLUTION_INSTANCE_NAME
-EVOLUTION_PHONE_NUMBER
-EVOLUTION_ADMIN_TOKEN
-EVOLUTION_WEBHOOK_SECRET
-OPENROUTER_API_KEY
-OPENROUTER_MODEL
-```
-
-Los secretos privados deben configurarse en Supabase Dashboard o mediante Supabase CLI y nunca confirmarse en Git.
-
-## Despliegue previsto
-
-1. Autenticar Supabase CLI o MCP con una cuenta que tenga acceso al proyecto `zfldlzsozlesecbtyltk`.
-2. Vincular el repositorio al proyecto correcto.
-3. Aplicar la migración de `supabase/migrations`.
-4. Configurar los secretos de las funciones.
-5. Desplegar `evolution-admin` y `evolution-webhook`.
-6. Compilar el frontend con `npm run build`.
-7. Publicar `dist/` en el servidor asociado a `rutacali.xorbit360.com`.
-8. Abrir `Conectar WhatsApp`, generar el QR y vincular el dispositivo.
-9. Enviar un mensaje real y comprobar entrada, respuesta y persistencia.
-
-Supabase aloja la base de datos y las funciones. El frontend de `rutacali.xorbit360.com` debe alojarse en el VPS o servicio web al que apunta el subdominio.
-
-### Ejecución en VPS con Docker
-
-En el VPS se debe crear un archivo `.env` no versionado con los dos valores públicos del frontend y ejecutar:
-
-```bash
-docker compose up -d --build
-```
-
-El contenedor escucha únicamente en `127.0.0.1:3000`. Nginx o Caddy debe publicar `rutacali.xorbit360.com`, terminar TLS y enviar el tráfico a ese puerto. El endpoint de salud es `/health`.
-
-## Estado actual
-
-- Repositorio descargado y configurado localmente.
-- Frontend enlazado al proyecto Supabase correcto mediante configuración pública local.
-- Pantalla de conexión WhatsApp implementada.
-- Proyecto remoto verificado: `https://zfldlzsozlesecbtyltk.supabase.co`.
-- Tres migraciones aplicadas y registradas en Supabase: backend WhatsApp, automatización OpenRouter y cierre de permisos sobre la función privilegiada de RLS.
-- Cinco tablas privadas desplegadas con RLS: `whatsapp_instances`, `whatsapp_messages`, `whatsapp_contacts`, `rac_cases` y `automation_events`.
-- Funciones Edge `evolution-admin` y `evolution-webhook` desplegadas y activas con autenticación personalizada; ambas rechazan solicitudes sin credenciales.
-- Prompt inicial del bot implementado.
-- OpenRouter configurado con salida JSON estructurada y modelo económico intercambiable.
-- Automatizaciones limitadas para perfil, consentimiento, triaje, expediente y entrega humana.
-- Sincronización del panel web con expedientes reales creados por WhatsApp, protegida por la clave administrativa.
-- Número previsto para la instancia de Evolution API: `+57 313 859 0373`.
-- Compilación Vite y verificación TypeScript aprobadas.
-- Imagen Docker y composición para VPS preparadas.
-- Plantilla de verificación automática para GitHub Actions disponible en `deployment/github-actions-ci.yml.example`; debe activarse cuando el token tenga permiso `Workflows: write`.
-- Acceso de escritura a `xorbit360/rutacali` verificado mediante autenticación OAuth de GitHub.
-- Evolution API pendiente de URL y API key operativas; sin esos datos no se puede emitir un QR real.
-- Secretos pendientes en Supabase: OpenRouter, Evolution, clave administrativa y firma del webhook.
-- VPS pendiente de publicación de la aplicación, proxy HTTPS y certificado válido para `rutacali.xorbit360.com`.
-- Especificaciones técnicas externas pendientes porque el archivo fuente está vacío.
-
-## Criterios de aceptación
-
-- El administrador puede generar y ver un QR sin exponer la API key de Evolution.
-- El estado cambia a conectado después de escanear el QR.
-- Un mensaje real genera una sola fila entrante y una sola respuesta saliente.
-- El bot conserva contexto reciente sin mezclar conversaciones entre teléfonos.
-- Ningún secreto aparece en el bundle del navegador ni en Git.
-- Las tablas expuestas mantienen RLS habilitado.
-- Los errores de Evolution, Gemini o Supabase quedan registrados y no producen respuestas duplicadas.
