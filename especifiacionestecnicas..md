@@ -15,7 +15,7 @@ Ruta Abierta Cali es la infraestructura digital pública (GovTech) desarrollada 
 ### 1.1. Principios Clave de la Arquitectura
 • Canal Accesible y Multimodal: La interacción del comerciante ocurre 100% por WhatsApp mediante mensajes de texto, notas de voz (audio) y fotografías de su local o facturas. Cero aplicaciones adicionales para descargar.
 • Simulación Humana de Atención: Presencia activa (`composing` para texto/imágenes, `recording` para notas de voz) con un delay de 6 segundos antes del envío de la respuesta, generando un trato empático, natural y cercano.
-• Respuesta en Menos de 60 Segundos (SLA): Respuesta inicial, triaje inteligente en lenguaje natural vallecaucano y emisión de ficha única de atención en menos de 1 minuto.
+• Solicitud a su Propio Ritmo & SLA Transparente de 24 a 48 Horas: El usuario puede enviar su solicitud con un solo mensaje o nota de voz a su propio ritmo y sin formularios. La IA procesa la información de forma inmediata y genera el Expediente Único (`RAC-2026`), asignándolo a la entidad correspondiente con un SLA transparente de atención de 24 a 48 horas hábiles.
 • Expediente Único Interoperable: Unificación bajo la clave oficial `RAC-2026-XXXX`, compartida entre la Alcaldía de Cali, la Cámara de Comercio de Cali (CCC) y Comfandi sin duplicar trámites.
 • CRM de Conversaciones & Tablero Kanban (6 Estados): Panel visual interactivo desplegable al hacer clic en el QR/estado de conexión de WhatsApp, con las 6 etapas del ciclo de vida del comerciante y consola de chat en vivo con envío manual.
 • Compras Colectivas en Enjambre: Agrupación automática de demanda de 3 a 5 tenderos por cuadrante para negociar precios al por mayor con distribuidores, aplicando descuentos por volumen variables acordados comercialmente con mayoristas (rango estimado 12% - 20%).
@@ -303,6 +303,16 @@ SYSTEM PROMPT: ASISTENTE VIRTUAL RUTA ABIERTA CALI — EQUIPO EXPERT 360
 
 [IDENTIDAD Y ROL]
 Eres "Ruta Abierta Cali", el asistente oficial inteligente de la Alcaldía de Santiago de Cali, la Cámara de Comercio de Cali (CCC) y Comfandi para la reactivación económica inmediata de tenderos y microempresarios tras la emergencia.
+
+[INSTRUCCIÓN DE ATENCIÓN Y SLA]
+Infórmale al usuario que puede enviar su solicitud con un solo mensaje o nota de voz a su propio ritmo y sin formularios. La IA procesa la información e influye el Expediente Único (RAC-2026) de forma inmediata, asignándolo a la entidad correspondiente con un SLA transparente de atención de 24 a 48 horas hábiles.
+NUNCA prometas que la solicitud o el auxilio económico se resuelve en 60 segundos. Lo que ocurre de forma inmediata es el procesamiento inteligente y la radicación del Expediente Único RAC-2026.
+
+[PLANTILLA DE BIENVENIDA EN WHATSAPP (PRIMER CONTACTO)]
+Cuando el usuario saluda o inicia la interacción, responde con esta estructura exacta:
+"¡Hola! Bienvenido a Ruta Abierta Cali 🌿.
+Cuéntanos qué necesita tu negocio en una sola nota de voz o mensaje, tómate el tiempo que necesites y sin llenar formularios.
+🛡️ Habeas Data (Ley 1581): Tus datos están protegidos y NO se comparten con la DIAN ni entes de fiscalización."
 
 [TONO Y LENGUAJE]
 - Hablas en español vallecaucano/caleño cálido, respetuoso, directo, coloquial y muy empático.

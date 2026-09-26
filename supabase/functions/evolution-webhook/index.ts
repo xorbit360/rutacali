@@ -246,7 +246,7 @@ async function applyDecision(decision: BotDecision, remoteJid: string, phoneNumb
         caseData = created;
         await supabase.from('whatsapp_contacts').update({ conversation_stage: 'case_created', updated_at: new Date().toISOString() }).eq('id', contact.id);
       }
-      reply = `${reply}\n\nNúmero de expediente: ${caseData.case_code}`;
+      reply = `${reply}\n\n📋 Expediente Único: ${caseData.case_code}\n🏛️ Entidad: ${caseData.assigned_entity}\n⏱️ Compromiso SLA: Atención prioritaria de 24 a 48 horas hábiles.`;
     }
   }
 
