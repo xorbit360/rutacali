@@ -14,6 +14,7 @@ import { ScreenP1IngresoWhatsApp } from './components/screens/ScreenP1IngresoWha
 import { ScreenP2Triaje60s } from './components/screens/ScreenP2Triaje60s';
 import { ScreenP3ExpedienteRAC } from './components/screens/ScreenP3ExpedienteRAC';
 import { ScreenP4ComprasColectivas } from './components/screens/ScreenP4ComprasColectivas';
+import { WhatsAppConnection } from './components/WhatsAppConnection';
 import {
   INITIAL_COMERCIANTES_SHEET,
   INITIAL_ENJAMBRES_SHEET,
@@ -102,6 +103,7 @@ export default function App() {
 
       {/* Main Content Area: Individual Dedicated Screen for Each Entity and Step */}
       <main className="flex-1 pb-8">
+        {currentTab === 'conectar_whatsapp' && <WhatsAppConnection />}
         {/* ENTIDAD 1: ALCALDÍA DE CALI (Secretaría de Desarrollo Económico) */}
         {currentTab === 'alcaldia' && (
           <ScreenAlcaldia

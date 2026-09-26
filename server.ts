@@ -2,13 +2,19 @@ import express, { Request, Response } from 'express';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT || 3000);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(express.json({ limit: '10mb' }));
+
+app.get('/health', (_req: Request, res: Response) => {
+  res.json({ status: 'ok', service: 'ruta-abierta-cali' });
+});
 
 // Initial Google Sheets Central Database (EXPERT 360)
 let COMERCIANTES_SHEET = [

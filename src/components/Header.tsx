@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   FileSpreadsheet, Landmark, Truck, Wrench,
-  Layers, Smartphone
+  Layers, Smartphone, QrCode
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -75,6 +75,9 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Zone 3: Primary Action & Google Sheets toggle */}
         <div className="flex items-center gap-2 shrink-0">
+          <button onClick={() => onSelectTab('conectar_whatsapp')} title="Conectar WhatsApp" className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-colors ${currentTab === 'conectar_whatsapp' ? 'bg-emerald-700 text-white border-emerald-700' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}>
+            <QrCode className="w-4 h-4" />
+          </button>
           <button
             onClick={() => onSelectTab('sheets')}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg border transition-all whitespace-nowrap ${
