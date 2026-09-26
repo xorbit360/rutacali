@@ -18,7 +18,8 @@ import {
   Headphones,
   Image as ImageIcon,
   Layers,
-  Filter
+  Filter,
+  Users
 } from 'lucide-react';
 
 export type ContactItem = {
@@ -30,7 +31,7 @@ export type ContactItem = {
   neighborhood: string | null;
   commune: string | null;
   consent_status: 'pending' | 'granted' | 'denied';
-  conversation_stage: 'intake' | 'awaiting_consent' | 'triaged' | 'case_created' | 'human_handoff';
+  conversation_stage: string;
   current_route: number | null;
   route_label: string | null;
   barrier_summary: string | null;
@@ -61,8 +62,16 @@ type ChatMessage = {
   processing_error?: string | null;
 };
 
+export type PipelineStageId = 
+  | 'NUEVO_REGISTRO' 
+  | 'EN_TRIAJE_IA' 
+  | 'ASIGNADO_ENTIDAD' 
+  | 'EN_ATENCION_SLA' 
+  | 'ENJAMBRE_ACTIVO' 
+  | 'ATENDIDO';
+
 const PIPELINE_COLUMNS: {
-  id: ContactItem['conversation_stage'];
+  id: PipelineStageId;
   label: string;
   shortLabel: string;
   badgeColor: string;
@@ -70,46 +79,65 @@ const PIPELINE_COLUMNS: {
   desc: string;
 }[] = [
   {
-    id: 'intake',
-    label: '1. Nuevo Ingreso',
-    shortLabel: 'Ingreso',
+    id: 'NUEVO_REGISTRO',
+    label: '1. Nuevo Registro',
+    shortLabel: 'Registro',
     badgeColor: 'bg-blue-100 text-blue-800 border-blue-200',
     borderColor: 'border-t-blue-500',
-    desc: 'Primer contacto y bienvenida'
+    desc: 'Primer contacto recibido'
   },
   {
-    id: 'awaiting_consent',
-    label: '2. En Triaje / Consentimiento',
-    shortLabel: 'En Triaje',
+    id: 'EN_TRIAJE_IA',
+    label: '2. En Triaje IA',
+    shortLabel: 'Triaje IA',
     badgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
     borderColor: 'border-t-amber-500',
-    desc: 'Validando Ley 1581 o necesidades'
+    desc: 'Evaluación y Ley 1581'
   },
   {
-    id: 'triaged',
-    label: '3. Triaje Completado',
-    shortLabel: 'Triaje OK',
+    id: 'ASIGNADO_ENTIDAD',
+    label: '3. Asignado a Entidad',
+    shortLabel: 'Asignado',
     badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     borderColor: 'border-t-emerald-500',
-    desc: 'Ruta 1 - 4 asignada'
+    desc: 'Ruta 1 a 4 definida'
   },
   {
-    id: 'case_created',
-    label: '4. Expediente Radicado',
-    shortLabel: 'Expediente',
+    id: 'EN_ATENCION_SLA',
+    label: '4. En Atención SLA',
+    shortLabel: 'SLA 24h',
     badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
     borderColor: 'border-t-purple-500',
-    desc: 'Código oficial RAC-2026'
+    desc: 'Expediente RAC-2026'
   },
   {
-    id: 'human_handoff',
-    label: '5. Atención Humana',
-    shortLabel: 'Humana',
-    badgeColor: 'bg-rose-100 text-rose-800 border-rose-200',
-    borderColor: 'border-t-rose-500',
-    desc: 'Derivado a gestor territorial'
+    id: 'ENJAMBRE_ACTIVO',
+    label: '5. Enjambre Activo',
+    shortLabel: 'Enjambre',
+    badgeColor: 'bg-orange-100 text-orange-800 border-orange-200',
+    borderColor: 'border-t-orange-500',
+    desc: 'Compras colectivas insumos'
+  },
+  {
+    id: 'ATENDIDO',
+    label: '6. Atendido',
+    shortLabel: 'Atendido',
+    badgeColor: 'bg-teal-100 text-teal-800 border-teal-200',
+    borderColor: 'border-t-teal-500',
+    desc: 'Alivio entregado / Resuelto'
   }
 ];
+
+function matchesStage(stage: string | undefined, colId: PipelineStageId): boolean {
+  const s = (stage || 'NUEVO_REGISTRO').toUpperCase();
+  if (colId === 'NUEVO_REGISTRO') return s === 'NUEVO_REGISTRO' || s === 'INTAKE';
+  if (colId === 'EN_TRIAJE_IA') return s === 'EN_TRIAJE_IA' || s === 'AWAITING_CONSENT';
+  if (colId === 'ASIGNADO_ENTIDAD') return s === 'ASIGNADO_ENTIDAD' || s === 'TRIAGED';
+  if (colId === 'EN_ATENCION_SLA') return s === 'EN_ATENCION_SLA' || s === 'CASE_CREATED';
+  if (colId === 'ENJAMBRE_ACTIVO') return s === 'ENJAMBRE_ACTIVO' || s === 'ENJAMBRE';
+  if (colId === 'ATENDIDO') return s === 'ATENDIDO' || s === 'HUMAN_HANDOFF' || s === 'RESOLVED';
+  return false;
+}
 
 interface CrmKanbanProps {
   adminToken: string;
@@ -121,7 +149,7 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeMobileTab, setActiveMobileTab] = useState<'all' | ContactItem['conversation_stage']>('all');
+  const [activeMobileTab, setActiveMobileTab] = useState<'all' | PipelineStageId>('all');
   const [selectedContact, setSelectedContact] = useState<ContactItem | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [loadingChat, setLoadingChat] = useState(false);
@@ -183,7 +211,7 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
     }
   };
 
-  const handleUpdateStage = async (contactId: number, stage: ContactItem['conversation_stage']) => {
+  const handleUpdateStage = async (contactId: number, stage: PipelineStageId) => {
     try {
       const res = await fetch(functionUrl, {
         method: 'POST',
@@ -269,14 +297,14 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-base sm:text-lg lg:text-xl font-black text-slate-900 leading-tight">
-                CRM & Pipeline Kanban
+                CRM & Pipeline Kanban (6 Estados)
               </h1>
               <span className="text-[10px] sm:text-xs px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold">
                 WhatsApp en Vivo
               </span>
             </div>
             <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 line-clamp-1">
-              Monitoreo y triaje de comerciantes en tiempo real
+              Monitoreo, triaje y seguimiento de comerciantes bajo SLA oficial
             </p>
           </div>
         </div>
@@ -311,26 +339,26 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
           <p className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">{contacts.length}</p>
         </div>
         <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200 shadow-xs">
-          <p className="text-[11px] sm:text-xs text-amber-600 font-semibold truncate">En Triaje / Consentimiento</p>
+          <p className="text-[11px] sm:text-xs text-amber-600 font-semibold truncate">En Triaje IA</p>
           <p className="text-xl sm:text-2xl font-black text-amber-700 mt-0.5">
-            {contacts.filter((c) => c.conversation_stage === 'awaiting_consent' || c.conversation_stage === 'intake').length}
+            {contacts.filter((c) => matchesStage(c.conversation_stage, 'EN_TRIAJE_IA')).length}
           </p>
         </div>
         <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200 shadow-xs">
-          <p className="text-[11px] sm:text-xs text-emerald-600 font-semibold truncate">Ruta Asignada</p>
-          <p className="text-xl sm:text-2xl font-black text-emerald-700 mt-0.5">
-            {contacts.filter((c) => c.conversation_stage === 'triaged' || c.current_route !== null).length}
-          </p>
-        </div>
-        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200 shadow-xs">
-          <p className="text-[11px] sm:text-xs text-purple-600 font-semibold truncate">Expedientes RAC-2026</p>
+          <p className="text-[11px] sm:text-xs text-purple-600 font-semibold truncate">En Atención SLA (24h)</p>
           <p className="text-xl sm:text-2xl font-black text-purple-700 mt-0.5">
-            {contacts.filter((c) => c.latest_case || c.conversation_stage === 'case_created').length}
+            {contacts.filter((c) => matchesStage(c.conversation_stage, 'EN_ATENCION_SLA') || Boolean(c.latest_case)).length}
+          </p>
+        </div>
+        <div className="bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200 shadow-xs">
+          <p className="text-[11px] sm:text-xs text-teal-600 font-semibold truncate">Casos Atendidos</p>
+          <p className="text-xl sm:text-2xl font-black text-teal-700 mt-0.5">
+            {contacts.filter((c) => matchesStage(c.conversation_stage, 'ATENDIDO')).length}
           </p>
         </div>
       </div>
 
-      {/* Pestañas para Móviles / Tablets (para cambiar rápido de columna) */}
+      {/* Pestañas para Móviles / Tablets (para cambiar rápido de columna entre los 6 estados) */}
       <div className="flex md:hidden items-center gap-1.5 overflow-x-auto pb-2 mb-3 scrollbar-none">
         <button
           onClick={() => setActiveMobileTab('all')}
@@ -340,12 +368,10 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
               : 'bg-white border border-slate-200 text-slate-600'
           }`}
         >
-          Todas las etapas ({filteredContacts.length})
+          Todos ({filteredContacts.length})
         </button>
         {PIPELINE_COLUMNS.map((col) => {
-          const count = filteredContacts.filter((c) =>
-            col.id === 'intake' ? c.conversation_stage === 'intake' || !c.conversation_stage : c.conversation_stage === col.id
-          ).length;
+          const count = filteredContacts.filter((c) => matchesStage(c.conversation_stage, col.id)).length;
           return (
             <button
               key={col.id}
@@ -372,34 +398,30 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
         </div>
       )}
 
-      {/* Tablero Kanban: Flexible en móvil (con scroll horizontal o filtrado por tab) y Grid de 5 columnas en Tablets/Desktop */}
-      <div className="flex md:grid md:grid-cols-5 gap-3 sm:gap-4 items-start overflow-x-auto pb-4 md:pb-0 scroll-smooth snap-x snap-mandatory">
+      {/* Tablero Kanban: 6 Columnas con scroll horizontal fluido en móvil/tablet y grid en desktop */}
+      <div className="flex md:grid md:grid-cols-3 xl:grid-cols-6 gap-3 items-start overflow-x-auto pb-4 md:pb-0 scroll-smooth snap-x snap-mandatory">
         {PIPELINE_COLUMNS.map((col) => {
-          // Si estamos en móvil y hay una pestaña activa seleccionada (que no sea 'all'), ocultamos las otras
           if (activeMobileTab !== 'all' && activeMobileTab !== col.id) {
             return null;
           }
 
-          const colContacts = filteredContacts.filter((c) => {
-            if (col.id === 'intake') return c.conversation_stage === 'intake' || !c.conversation_stage;
-            return c.conversation_stage === col.id;
-          });
+          const colContacts = filteredContacts.filter((c) => matchesStage(c.conversation_stage, col.id));
 
           return (
             <div
               key={col.id}
-              className={`bg-slate-50/80 border border-slate-200 rounded-xl p-2.5 sm:p-3 border-t-4 ${col.borderColor} min-h-[420px] sm:min-h-[500px] flex flex-col w-[85vw] sm:w-[320px] md:w-auto md:min-w-0 shrink-0 snap-center shadow-2xs`}
+              className={`bg-slate-50/80 border border-slate-200 rounded-xl p-2.5 sm:p-3 border-t-4 ${col.borderColor} min-h-[420px] sm:min-h-[480px] flex flex-col w-[85vw] sm:w-[300px] md:w-auto md:min-w-0 shrink-0 snap-center shadow-2xs`}
             >
               {/* Encabezado de Columna */}
               <div className="flex items-center justify-between mb-1.5">
-                <span className={`text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-full border truncate max-w-[80%] ${col.badgeColor}`}>
+                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border truncate max-w-[80%] ${col.badgeColor}`}>
                   {col.label}
                 </span>
                 <span className="text-[10px] sm:text-xs font-black text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
                   {colContacts.length}
                 </span>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-slate-500 mb-2.5 line-clamp-1">{col.desc}</p>
+              <p className="text-[10px] text-slate-500 mb-2.5 line-clamp-1">{col.desc}</p>
 
               {/* Lista de Tarjetas */}
               <div className="space-y-2.5 flex-1 overflow-y-auto">
@@ -474,16 +496,18 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
                       </button>
                     </div>
 
-                    {/* Selector de mover de columna rápido */}
+                    {/* Selector de mover de columna rápido (6 estados oficiales) */}
                     <div
                       className="mt-2 pt-1.5 border-t border-dashed border-slate-200"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <label className="text-[9px] font-bold text-slate-400 block mb-0.5">Mover etapa:</label>
                       <select
-                        value={c.conversation_stage || 'intake'}
+                        value={
+                          PIPELINE_COLUMNS.find((p) => matchesStage(c.conversation_stage, p.id))?.id || 'NUEVO_REGISTRO'
+                        }
                         onChange={(e) =>
-                          handleUpdateStage(c.id, e.target.value as ContactItem['conversation_stage'])
+                          handleUpdateStage(c.id, e.target.value as PipelineStageId)
                         }
                         className="w-full text-[10px] py-1 px-1 border border-slate-200 rounded bg-white text-slate-700 focus:outline-none"
                       >
@@ -508,7 +532,7 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
         })}
       </div>
 
-      {/* Modal / Drawer de Chat: Fullscreen en móvil, Drawer elegante en desktop */}
+      {/* Modal / Drawer de Chat: Fullscreen en móvil, Drawer en desktop */}
       {selectedContact && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex justify-end">
           <div className="bg-white w-full sm:max-w-xl h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
@@ -525,7 +549,7 @@ export function CrmKanban({ adminToken, onBackToQr }: CrmKanbanProps) {
                   <p className="text-[10px] sm:text-xs text-slate-500 truncate">
                     +{selectedContact.phone_number || selectedContact.remote_jid} •{' '}
                     <span className="font-semibold text-emerald-700">
-                      {PIPELINE_COLUMNS.find((p) => p.id === selectedContact.conversation_stage)?.shortLabel}
+                      {PIPELINE_COLUMNS.find((p) => matchesStage(selectedContact.conversation_stage, p.id))?.shortLabel || 'En proceso'}
                     </span>
                   </p>
                 </div>
