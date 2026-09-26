@@ -1,0 +1,7 @@
+{
+  "name": "Ruta Abierta Cali - GovTech Post-Sismo",
+  "description": "Infraestructura Pública Digital y Asistente GovTech para la reactivación económica comercial de Santiago de Cali post-sismo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
