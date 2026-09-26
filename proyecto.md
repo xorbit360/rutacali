@@ -128,9 +128,11 @@ Supabase Edge Function Secrets, valores privados:
 EVOLUTION_API_URL
 EVOLUTION_API_KEY
 EVOLUTION_INSTANCE_NAME
+EVOLUTION_PHONE_NUMBER
 EVOLUTION_ADMIN_TOKEN
 EVOLUTION_WEBHOOK_SECRET
-GEMINI_API_KEY
+OPENROUTER_API_KEY
+OPENROUTER_MODEL
 ```
 
 Los secretos privados deben configurarse en Supabase Dashboard o mediante Supabase CLI y nunca confirmarse en Git.
@@ -164,15 +166,22 @@ El contenedor escucha únicamente en `127.0.0.1:3000`. Nginx o Caddy debe public
 - Repositorio descargado y configurado localmente.
 - Frontend enlazado al proyecto Supabase correcto mediante configuración pública local.
 - Pantalla de conexión WhatsApp implementada.
-- Migración inicial creada.
-- Funciones Edge de administración y webhook implementadas.
+- Proyecto remoto verificado: `https://zfldlzsozlesecbtyltk.supabase.co`.
+- Tres migraciones aplicadas y registradas en Supabase: backend WhatsApp, automatización OpenRouter y cierre de permisos sobre la función privilegiada de RLS.
+- Cinco tablas privadas desplegadas con RLS: `whatsapp_instances`, `whatsapp_messages`, `whatsapp_contacts`, `rac_cases` y `automation_events`.
+- Funciones Edge `evolution-admin` y `evolution-webhook` desplegadas y activas con autenticación personalizada; ambas rechazan solicitudes sin credenciales.
 - Prompt inicial del bot implementado.
+- OpenRouter configurado con salida JSON estructurada y modelo económico intercambiable.
+- Automatizaciones limitadas para perfil, consentimiento, triaje, expediente y entrega humana.
+- Sincronización del panel web con expedientes reales creados por WhatsApp, protegida por la clave administrativa.
+- Número previsto para la instancia de Evolution API: `+57 313 859 0373`.
 - Compilación Vite y verificación TypeScript aprobadas.
 - Imagen Docker y composición para VPS preparadas.
 - Plantilla de verificación automática para GitHub Actions disponible en `deployment/github-actions-ci.yml.example`; debe activarse cuando el token tenga permiso `Workflows: write`.
-- Despliegue remoto pendiente por falta de autorización MCP/CLI al proyecto correcto.
-- Publicación GitHub pendiente: la cuenta local tiene permiso de lectura, no escritura, sobre `xorbit360/rutacali`.
-- Evolution API pendiente de URL y API key operativas.
+- Acceso de escritura a `xorbit360/rutacali` verificado mediante autenticación OAuth de GitHub.
+- Evolution API pendiente de URL y API key operativas; sin esos datos no se puede emitir un QR real.
+- Secretos pendientes en Supabase: OpenRouter, Evolution, clave administrativa y firma del webhook.
+- VPS pendiente de publicación de la aplicación, proxy HTTPS y certificado válido para `rutacali.xorbit360.com`.
 - Especificaciones técnicas externas pendientes porque el archivo fuente está vacío.
 
 ## Criterios de aceptación

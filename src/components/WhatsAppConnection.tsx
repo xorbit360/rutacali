@@ -61,7 +61,7 @@ export function WhatsAppConnection() {
         <section className="bg-white border border-slate-200 rounded-lg p-6">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-10 h-10 bg-emerald-50 text-emerald-700 rounded-lg flex items-center justify-center"><MessageCircle /></div>
-            <div><h2 className="font-bold">Instancia Ruta Cali</h2><p className="text-xs text-slate-500">Mensajes, triaje y radicación automática</p></div>
+            <div><h2 className="font-bold">+57 313 859 0373</h2><p className="text-xs text-slate-500">Mensajes, triaje y radicación automática</p></div>
           </div>
           <label className="text-xs font-bold text-slate-700 block mb-2">Clave administrativa</label>
           <div className="flex gap-2">

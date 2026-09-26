@@ -37,7 +37,20 @@ export default function App() {
   useEffect(() => {
     const fetchSheets = async () => {
       try {
-        const res = await fetch('/api/sheets/all');
+        const adminToken = sessionStorage.getItem('rac_admin_token');
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        const res = adminToken && supabaseUrl && publishableKey
+          ? await fetch(`${supabaseUrl}/functions/v1/evolution-admin`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                apikey: publishableKey,
+                'x-admin-token': adminToken
+              },
+              body: JSON.stringify({ action: 'platform-data' })
+            })
+          : await fetch('/api/sheets/all');
         if (res.ok) {
           const data = await res.json();
           if (data.comerciantes) setComerciantes(data.comerciantes);
@@ -49,6 +62,8 @@ export default function App() {
       }
     };
     fetchSheets();
+    const timer = window.setInterval(fetchSheets, 20000);
+    return () => window.clearInterval(timer);
   }, []);
 
   const handleAddComerciante = async (row: ComercianteRow) => {
