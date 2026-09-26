@@ -15,7 +15,7 @@ const evolutionUrl = (Deno.env.get('EVOLUTION_API_URL') || '').replace(/\/$/, ''
 const evolutionKey = Deno.env.get('EVOLUTION_API_KEY') || '';
 const instance = Deno.env.get('EVOLUTION_INSTANCE_NAME') || 'rutacali';
 const openRouterKey = Deno.env.get('OPENROUTER_API_KEY') || '';
-const openRouterModel = Deno.env.get('OPENROUTER_MODEL') || 'mistralai/mistral-nemo';
+const openRouterModel = Deno.env.get('OPENROUTER_MODEL') || 'google/gemini-2.5-flash';
 const secretKeys = JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') || '{}');
 const supabaseKey = secretKeys.default || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const supabase = createClient(Deno.env.get('SUPABASE_URL')!, supabaseKey, { auth: { persistSession: false } });
@@ -96,16 +96,67 @@ function validDecision(value: any): value is BotDecision {
   );
 }
 
-async function sendText(phoneNumber: string, text: string) {
+async function sendPresence(target: string, presence: 'composing' | 'recording' = 'composing', delay = 6000) {
+  try {
+    await fetch(`${evolutionUrl}/chat/sendPresence/${instance}`, {
+      method: 'POST',
+      headers: { apikey: evolutionKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ number: target, presence, delay })
+    });
+  } catch (err) {
+    console.warn('sendPresence error:', err);
+  }
+}
+
+async function sendText(target: string, text: string) {
   const response = await fetch(`${evolutionUrl}/message/sendText/${instance}`, {
     method: 'POST',
     headers: { apikey: evolutionKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ number: phoneNumber, text })
+    body: JSON.stringify({ number: target, text })
   });
-  if (!response.ok) throw new Error(`Evolution sendText failed: ${response.status}`);
+  if (!response.ok) {
+    const errBody = await response.text();
+    console.error(`Evolution sendText failed (${response.status}):`, errBody);
+    throw new Error(`Evolution sendText failed: ${response.status} - ${errBody}`);
+  }
 }
 
-async function callOpenRouter(messages: Array<{ role: string; content: string }>, verifiedState: unknown) {
+async function fetchMediaBase64(data: any): Promise<{ base64: string; mimetype: string } | null> {
+  if (data?.base64) {
+    const mimetype = data.message?.audioMessage?.mimetype || data.message?.imageMessage?.mimetype || 'image/jpeg';
+    return { base64: data.base64, mimetype };
+  }
+  try {
+    const response = await fetch(`${evolutionUrl}/chat/getBase64FromMediaMessage/${instance}`, {
+      method: 'POST',
+      headers: { apikey: evolutionKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: {
+          key: data.key,
+          message: data.message
+        },
+        convertToMp4: false
+      })
+    });
+    if (response.ok) {
+      const resData = await response.json();
+      if (resData?.base64) {
+        return {
+          base64: resData.base64,
+          mimetype: resData.mimetype || data.message?.audioMessage?.mimetype || data.message?.imageMessage?.mimetype || 'application/octet-stream'
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('fetchMediaBase64 error:', err);
+  }
+  return null;
+}
+
+async function callOpenRouter(
+  messages: Array<{ role: string; content: any }>,
+  verifiedState: unknown
+) {
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -122,9 +173,8 @@ async function callOpenRouter(messages: Array<{ role: string; content: string }>
         ...messages
       ],
       temperature: 0.2,
-      max_tokens: 420,
-      response_format: { type: 'json_schema', json_schema: responseSchema },
-      provider: { sort: 'price', require_parameters: true, data_collection: 'deny' }
+      max_tokens: 600,
+      response_format: { type: 'json_schema', json_schema: responseSchema }
     })
   });
   const body = await response.json();
@@ -220,7 +270,18 @@ Deno.serve(async (req) => {
   if ((payload.event || '').toLowerCase().replace(/[._-]/g, '') !== 'messagesupsert') return Response.json({ ok: true });
   const data = payload.data || {};
   if (data.key?.fromMe || String(data.key?.remoteJid || '').endsWith('@g.us')) return Response.json({ ok: true });
-  const body = textFromMessage(data.message);
+
+  const isAudio = Boolean(data.message?.audioMessage);
+  const isImage = Boolean(data.message?.imageMessage);
+  const caption = data.message?.imageMessage?.caption || '';
+  let body = textFromMessage(data.message);
+
+  if (isAudio && !body) {
+    body = '[Nota de voz / Audio recibido]';
+  } else if (isImage && !body) {
+    body = caption ? `[Imagen adjunta]: ${caption}` : '[Imagen / Foto adjunta]';
+  }
+
   const messageId = data.key?.id;
   const { remoteJid, phoneNumber } = getAddress(data);
   if (!messageId || !remoteJid || !phoneNumber || !body) return Response.json({ ok: true });
@@ -231,30 +292,80 @@ Deno.serve(async (req) => {
   if (inboundError?.code === '23505') return Response.json({ ok: true, duplicate: true });
   if (inboundError) throw inboundError;
 
+  const target = String(remoteJid).endsWith('@lid') ? remoteJid : (phoneNumber || remoteJid);
+
   try {
+    // Si viene audio o imagen, obtenemos el base64 para el LLM multimodal
+    let media = null;
+    if (isAudio || isImage) {
+      media = await fetchMediaBase64(data);
+    }
+
     const [{ data: history, error: historyError }, { data: contact, error: contactError }] = await Promise.all([
       supabase.from('whatsapp_messages').select('direction,body').eq('remote_jid', remoteJid).order('created_at', { ascending: false }).limit(10),
       supabase.from('whatsapp_contacts').select('*').eq('phone_number', phoneNumber).maybeSingle()
     ]);
     if (historyError) throw historyError;
     if (contactError) throw contactError;
+
     let latestCase = null;
     if (contact?.id) {
       const { data, error } = await supabase.from('rac_cases').select('case_code,status,route,assigned_entity,created_at,updated_at').eq('contact_id', contact.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
       if (error) throw error;
       latestCase = data;
     }
-    const messages = (history || []).reverse().map((message: any) => ({ role: message.direction === 'outbound' ? 'assistant' : 'user', content: message.body }));
-    const { decision, usage } = await callOpenRouter(messages, { contact: contact || { conversation_stage: 'intake', consent_status: 'pending' }, latest_case: latestCase });
+
+    const messages: Array<{ role: string; content: any }> = (history || []).reverse().slice(0, -1).map((m: any) => ({
+      role: m.direction === 'outbound' ? 'assistant' : 'user',
+      content: m.body
+    }));
+
+    // Construimos el mensaje actual, enriquecido si es multimodal
+    if (isAudio && media?.base64) {
+      const format = media.mimetype.includes('wav') ? 'wav' : media.mimetype.includes('mp3') ? 'mp3' : 'ogg';
+      messages.push({
+        role: 'user',
+        content: [
+          { type: 'text', text: 'El comerciante envió esta nota de voz. Escúchala con atención, responde a su solicitud y realiza el triaje en Ruta Abierta Cali.' },
+          { type: 'input_audio', input_audio: { data: media.base64, format } }
+        ]
+      });
+    } else if (isImage && media?.base64) {
+      messages.push({
+        role: 'user',
+        content: [
+          { type: 'text', text: caption ? `El comerciante envió esta imagen con el texto: "${caption}". Analízala y responde en el contexto de Ruta Abierta Cali.` : 'El comerciante envió esta imagen (posiblemente un documento, fachada de negocio, RUT o comprobante). Analízala y responde.' },
+          { type: 'image_url', image_url: { url: `data:${media.mimetype};base64,${media.base64}` } }
+        ]
+      });
+    } else {
+      messages.push({
+        role: 'user',
+        content: body
+      });
+    }
+
+    const { decision, usage } = await callOpenRouter(messages, {
+      contact: contact || { conversation_stage: 'intake', consent_status: 'pending' },
+      latest_case: latestCase
+    });
+
     const reply = await applyDecision(decision, remoteJid, phoneNumber, messageId);
-    await sendText(phoneNumber, reply);
+
+    // DELAY DE 6 SEGUNDOS con simulación de presencia (composing o recording)
+    const presenceType = isAudio ? 'recording' : 'composing';
+    await sendPresence(target, presenceType, 6000);
+    await new Promise((resolve) => setTimeout(resolve, 6000));
+
+    await sendText(target, reply);
     await supabase.from('whatsapp_messages').insert({ instance_name: instance, remote_jid: remoteJid, direction: 'outbound', body: reply, llm_model: openRouterModel });
     await supabase.from('whatsapp_messages').update({ processed_at: new Date().toISOString(), llm_model: openRouterModel, prompt_tokens: usage.prompt_tokens || null, completion_tokens: usage.completion_tokens || null }).eq('message_id', messageId);
     return Response.json({ ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown processing error';
+    console.error('Webhook processing error:', error);
     await supabase.from('whatsapp_messages').update({ processing_error: message }).eq('message_id', messageId);
-    await sendText(phoneNumber, 'Recibimos tu mensaje, pero el asistente no pudo procesarlo en este momento. Un gestor continuará la atención.').catch(() => undefined);
-    return Response.json({ ok: false, error: 'Processing failed' }, { status: 500 });
+    await sendText(target, 'Recibimos tu mensaje, pero el asistente no pudo procesarlo en este momento. Un gestor continuará la atención.').catch(() => undefined);
+    return Response.json({ ok: false, error: message }, { status: 500 });
   }
 });
