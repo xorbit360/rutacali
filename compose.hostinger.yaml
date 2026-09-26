@@ -1,0 +1,19 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "3000"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.rutacali.rule=Host(`rutacali.xorbit360.com`)
+      - traefik.http.routers.rutacali.entrypoints=websecure
+      - traefik.http.routers.rutacali.tls.certresolver=letsencrypt
+      - traefik.http.services.rutacali.loadbalancer.server.port=3000
